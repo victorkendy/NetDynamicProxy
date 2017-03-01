@@ -1,0 +1,5 @@
+.vs/*
+*.lock.*
+*.xproj.user
+obj/
+bin/
