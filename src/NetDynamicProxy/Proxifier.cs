@@ -26,7 +26,9 @@ namespace NetDynamicProxy
 
         public T Build()
         {
-            return null;
+            ProxyFactory factory = new ProxyFactory();
+            factory.Init();
+            return factory.Create<T>(implementedInterfaces);
         }
     }
 }

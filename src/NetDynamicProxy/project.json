@@ -3,7 +3,9 @@
   "buildOptions": {
     "debugType": "portable"
   },
-  "dependencies": {},
+  "dependencies": {
+    "System.Reflection.Emit": "4.0.1"
+  },
   "frameworks": {
     "netcoreapp1.0": {
       "dependencies": {

@@ -9,7 +9,7 @@ namespace Tests
         [Fact]
         public void Test1() 
         {
-            Assert.IsType(typeof(object), Proxifier.For<Object>().Build());
+            Assert.IsAssignableFrom(typeof(object), Proxifier.For<Object>().Build());
         }
     }
 }
