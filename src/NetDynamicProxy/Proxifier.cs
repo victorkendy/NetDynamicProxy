@@ -10,6 +10,11 @@ namespace NetDynamicProxy
 		{
 			return new ProxifierWithBaseClass<T>(callback);
 		}
+
+		public static ProxifierWithBaseClass<Object> WithoutBaseClass(Func<Object, MethodInfo, Object[], Object> callback)
+		{
+			return new ProxifierWithBaseClass<Object>(callback);
+		}
 	}
 
 	public class ProxifierWithBaseClass<T> where T : class
@@ -35,7 +40,14 @@ namespace NetDynamicProxy
 		{
 			ProxyFactory factory = new ProxyFactory();
 			factory.Init();
-			return factory.Create<T>(implementedInterfaces, callback);
+			return (T) factory.Create(typeof(T), implementedInterfaces, callback);
+		}
+
+		public TResult Build<TResult>()
+		{
+			ProxyFactory factory = new ProxyFactory();
+			factory.Init();
+			return (TResult) factory.Create(typeof(T), implementedInterfaces, callback);
 		}
 	}
 }

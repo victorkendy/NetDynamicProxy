@@ -18,20 +18,23 @@ namespace NetDynamicProxy
 			this.moduleBuilder = assemblyBuilder.DefineDynamicModule("Proxies");
 		}
 
-		internal T Create<T>(IList<Type> implementedInterfaces, Func<Object, MethodInfo, Object[], Object> callback)
+		internal Object Create(Type baseClass, IList<Type> implementedInterfaces, Func<Object, MethodInfo, Object[], Object> callback)
 		{
-			Type originalType = typeof(T);
-			String proxyTypeName = originalType.FullName + "__Proxy";
+			String proxyTypeName = baseClass.FullName + "__Proxy";
 			TypeAttributes proxyTypeAttr = TypeAttributes.Class | TypeAttributes.Sealed | TypeAttributes.Public;
-			var typeBuilder = moduleBuilder.DefineType(proxyTypeName, proxyTypeAttr, originalType, implementedInterfaces.ToArray());
+			var typeBuilder = moduleBuilder.DefineType(proxyTypeName, proxyTypeAttr, baseClass, implementedInterfaces.ToArray());
 
 			var callbackType = typeof(Func<Object, MethodInfo, Object[], Object>);
 			var callbackField = typeBuilder.DefineField("proxy__callback", callbackType, FieldAttributes.Private);
 			defineConstructor(typeBuilder, callbackField);
-			overrideVirtualMethods(typeBuilder, originalType, callbackField);
+			overrideVirtualMethods(typeBuilder, baseClass, callbackField);
+			foreach(var @interface in implementedInterfaces)
+			{
+				overrideVirtualMethods(typeBuilder, @interface, callbackField);
+			}
 
 			var proxyType = typeBuilder.CreateTypeInfo();
-			return (T)proxyType.GetConstructor(new Type[] { callbackType }).Invoke(new Object[] { callback });
+			return proxyType.GetConstructor(new Type[] { callbackType }).Invoke(new Object[] { callback });
 		}
 
 		private void defineConstructor(TypeBuilder typeBuilder, FieldBuilder callbackField)
@@ -85,8 +88,15 @@ namespace NetDynamicProxy
 					{
 						il.Emit(OpCodes.Pop);
 					}
+					else if(method.ReturnType.GetTypeInfo().IsValueType)
+					{
+						il.Emit(OpCodes.Unbox_Any, method.ReturnType);
+					}
 					il.Emit(OpCodes.Ret);
-					typeBuilder.DefineMethodOverride(methodBuilder, method);
+					if(!type.GetTypeInfo().IsInterface)
+					{
+						typeBuilder.DefineMethodOverride(methodBuilder, method);
+					}
 				}
 			}
 		}
