@@ -8,6 +8,14 @@ namespace NetDynamicProxy
 	{
 		public static ProxifierWithBaseClass<T> For<T>(Func<Object, MethodInfo, Object[], Object> callback) where T : class
 		{
+			if(typeof(T).GetTypeInfo().IsInterface)
+			{
+				throw new ArgumentException("Proxy base type cannot be an interface");
+			}
+			if(callback == null)
+			{
+				throw new ArgumentNullException("Proxy callback method is undefined");
+			}
 			return new ProxifierWithBaseClass<T>(callback);
 		}
 
@@ -29,8 +37,20 @@ namespace NetDynamicProxy
 
 		public ProxifierWithBaseClass<T> WithInterfaces(params Type[] interfaces)
 		{
+			if(interfaces == null || interfaces.Length == 0)
+			{
+				throw new ArgumentNullException("Interfaces cannot be empty");
+			}
 			foreach (Type i in interfaces)
 			{
+				if (i == null)
+				{
+					throw new ArgumentNullException("Interface to be implemented cannot be null");
+				}
+				if(!i.GetTypeInfo().IsInterface)
+				{
+					throw new ArgumentException("The method WithInterfaces can only be called with interfaces as arguments");
+				}
 				implementedInterfaces.Add(i);
 			}
 			return this;
