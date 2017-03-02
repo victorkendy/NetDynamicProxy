@@ -28,7 +28,7 @@ namespace NetDynamicProxy
 			var callbackType = typeof(Func<Object, MethodInfo, Object[], Object>);
 			var callbackField = typeBuilder.DefineField("proxy__callback", callbackType, FieldAttributes.Private);
 			defineConstructor(typeBuilder, callbackField);
-			overrideVirtualMethods(typeBuilder, originalType);
+			overrideVirtualMethods(typeBuilder, originalType, callbackField);
 
 			var proxyType = typeBuilder.CreateTypeInfo();
 			return (T)proxyType.GetConstructor(new Type[] { callbackType }).Invoke(new Object[] { callback });
@@ -46,7 +46,7 @@ namespace NetDynamicProxy
 			il.Emit(OpCodes.Ret);
 		}
 
-		private void overrideVirtualMethods(TypeBuilder typeBuilder, Type type)
+		private void overrideVirtualMethods(TypeBuilder typeBuilder, Type type, FieldBuilder callbackField)
 		{
 			var methods = type.GetRuntimeMethods();
 			foreach (var method in methods)
@@ -57,6 +57,34 @@ namespace NetDynamicProxy
 					var argumentTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
 					var methodBuilder = typeBuilder.DefineMethod(method.Name, methodAttributes, method.ReturnType, argumentTypes);
 					var il = methodBuilder.GetILGenerator();
+					var args = il.DeclareLocal(typeof(Object[]));
+					il.Emit(OpCodes.Ldarg_0);
+					il.Emit(OpCodes.Ldfld, callbackField);
+					il.Emit(OpCodes.Ldarg_0);
+					il.Emit(OpCodes.Ldtoken, method);
+					il.Emit(OpCodes.Call, typeof(MethodBase).GetMethod("GetMethodFromHandle", new Type[] { typeof(RuntimeMethodHandle) }));
+					il.Emit(OpCodes.Ldc_I4, method.GetParameters().Length);
+					il.Emit(OpCodes.Newarr, typeof(Object));
+					il.Emit(OpCodes.Stloc, args);
+					for(int i = 1; i <= method.GetParameters().Length; i++)
+					{
+						var param = method.GetParameters()[i - 1];
+						il.Emit(OpCodes.Ldloc, args);
+						il.Emit(OpCodes.Ldc_I4, i - 1);
+						il.Emit(OpCodes.Ldarg_S, (byte)i);
+						if (param.ParameterType.GetTypeInfo().IsValueType)
+						{
+							il.Emit(OpCodes.Box, param.ParameterType);
+						}
+						il.Emit(OpCodes.Stelem_Ref);
+					}
+
+					il.Emit(OpCodes.Ldloc, args);
+					il.Emit(OpCodes.Callvirt, callbackField.FieldType.GetMethod("Invoke"));
+					if(method.ReturnType.Equals(typeof(void)))
+					{
+						il.Emit(OpCodes.Pop);
+					}
 					il.Emit(OpCodes.Ret);
 					typeBuilder.DefineMethodOverride(methodBuilder, method);
 				}
