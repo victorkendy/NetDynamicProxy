@@ -11,7 +11,8 @@ namespace NetDynamicProxy.Tests
 		[Fact]
 		public void ShouldProxifyInterface()
 		{
-			Object proxy = Proxifier.WithoutBaseClass((instance, method, args) => null).WithInterfaces(typeof(TestInterface)).Build();
+			Object proxy = Proxifier.WithoutBaseClass(new FuncProxyAction((instance, method, args) => null))
+				.WithInterfaces(typeof(TestInterface)).Build();
 			Assert.IsAssignableFrom(typeof(TestInterface), proxy);
 		}
 
@@ -19,10 +20,10 @@ namespace NetDynamicProxy.Tests
 		public void ShouldWireCallback()
 		{
 			bool proxyCalled = false;
-			TestInterface proxy = Proxifier.WithoutBaseClass((instance, method, args) => {
+			TestInterface proxy = Proxifier.WithoutBaseClass(new FuncProxyAction((instance, method, args) => {
 				proxyCalled = true;
 				return null;
-			})
+			}))
 			.WithInterfaces(typeof(TestInterface))
 			.Build<TestInterface>();
 			proxy.Method();
@@ -34,11 +35,11 @@ namespace NetDynamicProxy.Tests
 		{
 			bool proxyCalled = false;
 			Object[] proxyArgs = null;
-			TestInterface proxy = Proxifier.WithoutBaseClass((instance, method, args) => {
+			TestInterface proxy = Proxifier.WithoutBaseClass(new FuncProxyAction((instance, method, args) => {
 				proxyCalled = true;
 				proxyArgs = args;
 				return null;
-			})
+			}))
 			.WithInterfaces(typeof(TestInterface))
 			.Build<TestInterface>();
 			proxy.MethodWithArgs(100, "Proxy method test");
@@ -50,9 +51,9 @@ namespace NetDynamicProxy.Tests
 		public void ShouldUseProxyCallbackValueOnMethodWithReferenceTypeReturnValue()
 		{
 			const string ReturnValue = "Test string";
-			TestInterface proxy = Proxifier.WithoutBaseClass((instance, method, args) => {
+			TestInterface proxy = Proxifier.WithoutBaseClass(new FuncProxyAction((instance, method, args) => {
 				return ReturnValue;
-			})
+			}))
 			.WithInterfaces(typeof(TestInterface))
 			.Build<TestInterface>();
 			String result = proxy.MethodWithReferenceTypeReturnValue();
@@ -63,9 +64,9 @@ namespace NetDynamicProxy.Tests
 		public void ShouldUseProxyCallbackValueOnMethodWithValueTypeReturnValue()
 		{
 			const int ReturnValue = 1234;
-			TestInterface proxy = Proxifier.WithoutBaseClass((instance, method, args) => {
+			TestInterface proxy = Proxifier.WithoutBaseClass(new FuncProxyAction((instance, method, args) => {
 				return 1234;
-			})
+			}))
 			.WithInterfaces(typeof(TestInterface))
 			.Build<TestInterface>();
 			int result = proxy.MethodWithValueTypeReturnValue();
@@ -75,7 +76,7 @@ namespace NetDynamicProxy.Tests
 		[Fact]
 		public void ShouldAllowProxyMultipleInterfaces()
 		{
-			Object proxy = Proxifier.WithoutBaseClass((instance, method, args) => null)
+			Object proxy = Proxifier.WithoutBaseClass(new FuncProxyAction((instance, method, args) => null))
 				.WithInterfaces(typeof(TestInterface), typeof(TestInterface2))
 				.Build();
 			Assert.IsAssignableFrom(typeof(TestInterface), proxy);

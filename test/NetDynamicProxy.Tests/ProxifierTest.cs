@@ -11,7 +11,7 @@ namespace NetDynamicProxy.Tests
 		{
 			Assert.Throws<ArgumentException>(() =>
 			{
-				Proxifier.For<BaseInterface>((instance, method, args) => null);
+				Proxifier.For<BaseInterface>(new FuncProxyAction((instance, method, args) => null));
 			});
 		}
 		[Fact]
@@ -27,7 +27,7 @@ namespace NetDynamicProxy.Tests
 		{
 			Assert.Throws<ArgumentException>(() =>
 			{
-				Proxifier.For<Object>((instance, method, args) => null)
+				Proxifier.For<Object>(new FuncProxyAction((instance, method, args) => null))
 				.WithInterfaces(typeof(ClassAsInterface));
 			});
 		}
@@ -36,7 +36,7 @@ namespace NetDynamicProxy.Tests
 		{
 			Assert.Throws<ArgumentNullException>(() =>
 			{
-				Proxifier.For<Object>((instance, method, args) => null)
+				Proxifier.For<Object>(new FuncProxyAction((instance, method, args) => null))
 				.WithInterfaces();
 			});
 		}
@@ -46,7 +46,7 @@ namespace NetDynamicProxy.Tests
 		{
 			Assert.Throws<ArgumentNullException>(() =>
 			{
-				Proxifier.For<Object>((instance, method, args) => null)
+				Proxifier.For<Object>(new FuncProxyAction((instance, method, args) => null))
 				.WithInterfaces(typeof(BaseInterface), null);
 			});
 		}

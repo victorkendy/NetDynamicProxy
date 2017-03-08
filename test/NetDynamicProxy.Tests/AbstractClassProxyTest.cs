@@ -11,7 +11,7 @@ namespace NetDynamicProxy.Tests
 		[Fact]
 		public void ShouldConstructProxyForAbstractClass()
 		{
-			AbstractClass proxy = Proxifier.For<AbstractClass>((instance, method, args) => null).Build();
+			AbstractClass proxy = Proxifier.For<AbstractClass>(new FuncProxyAction((instance, method, args) => null)).Build();
 			Assert.IsAssignableFrom(typeof(object), proxy);
 		}
 
@@ -19,10 +19,10 @@ namespace NetDynamicProxy.Tests
 		public void ShouldWireCallback()
 		{
 			bool proxyCalled = false;
-			AbstractClass proxy = Proxifier.For<AbstractClass>((instance, method, args) => {
+			AbstractClass proxy = Proxifier.For<AbstractClass>(new FuncProxyAction((instance, method, args) => {
 				proxyCalled = true;
 				return null;
-			}).Build();
+			})).Build();
 			proxy.Method();
 			Assert.True(proxyCalled, "The proxy callback was not invoked");
 		}
@@ -32,11 +32,11 @@ namespace NetDynamicProxy.Tests
 		{
 			bool proxyCalled = false;
 			Object[] proxyArgs = null;
-			AbstractClass proxy = Proxifier.For<AbstractClass>((instance, method, args) => {
+			AbstractClass proxy = Proxifier.For<AbstractClass>(new FuncProxyAction((instance, method, args) => {
 				proxyCalled = true;
 				proxyArgs = args;
 				return null;
-			}).Build();
+			})).Build();
 			proxy.MethodWithArgs(100, "Proxy method test");
 			Assert.True(proxyCalled, "The proxy callback was not invoked");
 			Assert.Equal(new object[] { 100, "Proxy method test" }, proxyArgs);
@@ -46,9 +46,9 @@ namespace NetDynamicProxy.Tests
 		public void ShouldUseProxyCallbackValueOnMethodWithReferenceTypeReturnValue()
 		{
 			const string ReturnValue = "Test string";
-			AbstractClass proxy = Proxifier.For<AbstractClass>((instance, method, args) => {
+			AbstractClass proxy = Proxifier.For<AbstractClass>(new FuncProxyAction((instance, method, args) => {
 				return ReturnValue;
-			}).Build();
+			})).Build();
 			String result = proxy.MethodWithReferenceTypeReturnValue();
 			Assert.Equal(ReturnValue, result);
 		}
@@ -57,9 +57,9 @@ namespace NetDynamicProxy.Tests
 		public void ShouldUseProxyCallbackValueOnMethodWithValueTypeReturnValue()
 		{
 			const int ReturnValue = 1234;
-			AbstractClass proxy = Proxifier.For<AbstractClass>((instance, method, args) => {
+			AbstractClass proxy = Proxifier.For<AbstractClass>(new FuncProxyAction((instance, method, args) => {
 				return 1234;
-			}).Build();
+			})).Build();
 			int result = proxy.MethodWithValueTypeReturnValue();
 			Assert.Equal(ReturnValue, result);
 		}

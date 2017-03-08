@@ -18,13 +18,13 @@ namespace NetDynamicProxy
 			this.moduleBuilder = assemblyBuilder.DefineDynamicModule("Proxies");
 		}
 
-		internal Object Create(Type baseClass, IList<Type> implementedInterfaces, Func<Object, MethodInfo, Object[], Object> callback)
+		internal Object Create(Type baseClass, IList<Type> implementedInterfaces, IProxyAction action)
 		{
 			String proxyTypeName = baseClass.FullName + "__Proxy";
 			TypeAttributes proxyTypeAttr = TypeAttributes.Class | TypeAttributes.Sealed | TypeAttributes.Public;
 			var typeBuilder = moduleBuilder.DefineType(proxyTypeName, proxyTypeAttr, baseClass, implementedInterfaces.ToArray());
 
-			var callbackType = typeof(Func<Object, MethodInfo, Object[], Object>);
+			var callbackType = typeof(IProxyAction);
 			var callbackField = typeBuilder.DefineField("proxy__callback", callbackType, FieldAttributes.Private);
 			defineConstructor(typeBuilder, callbackField);
 			overrideVirtualMethods(typeBuilder, baseClass, callbackField);
@@ -34,7 +34,7 @@ namespace NetDynamicProxy
 			}
 
 			var proxyType = typeBuilder.CreateTypeInfo();
-			return proxyType.GetConstructor(new Type[] { callbackType }).Invoke(new Object[] { callback });
+			return proxyType.GetConstructor(new Type[] { callbackType }).Invoke(new Object[] { action });
 		}
 
 		private void defineConstructor(TypeBuilder typeBuilder, FieldBuilder callbackField)
@@ -69,7 +69,7 @@ namespace NetDynamicProxy
 					il.Emit(OpCodes.Ldc_I4, method.GetParameters().Length);
 					il.Emit(OpCodes.Newarr, typeof(Object));
 					il.Emit(OpCodes.Stloc, args);
-					for(int i = 1; i <= method.GetParameters().Length; i++)
+					for (int i = 1; i <= method.GetParameters().Length; i++)
 					{
 						var param = method.GetParameters()[i - 1];
 						il.Emit(OpCodes.Ldloc, args);
@@ -83,7 +83,8 @@ namespace NetDynamicProxy
 					}
 
 					il.Emit(OpCodes.Ldloc, args);
-					il.Emit(OpCodes.Callvirt, callbackField.FieldType.GetMethod("Invoke"));
+					il.Emit(OpCodes.Newobj, typeof(InvocationContext).GetConstructor(new Type[] { typeof(Object), typeof(MethodInfo), typeof(Object[]) }));
+					il.Emit(OpCodes.Callvirt, callbackField.FieldType.GetMethod("OnMethodInvoked", new Type[] { typeof(InvocationContext) }));
 					if(method.ReturnType.Equals(typeof(void)))
 					{
 						il.Emit(OpCodes.Pop);

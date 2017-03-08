@@ -6,33 +6,33 @@ namespace NetDynamicProxy
 {
 	public class Proxifier
 	{
-		public static ProxifierWithBaseClass<T> For<T>(Func<Object, MethodInfo, Object[], Object> callback) where T : class
+		public static ProxifierWithBaseClass<T> For<T>(IProxyAction action) where T : class
 		{
 			if(typeof(T).GetTypeInfo().IsInterface)
 			{
 				throw new ArgumentException("Proxy base type cannot be an interface");
 			}
-			if(callback == null)
+			if(action == null)
 			{
-				throw new ArgumentNullException("Proxy callback method is undefined");
+				throw new ArgumentNullException("Proxy action is undefined");
 			}
-			return new ProxifierWithBaseClass<T>(callback);
+			return new ProxifierWithBaseClass<T>(action);
 		}
 
-		public static ProxifierWithBaseClass<Object> WithoutBaseClass(Func<Object, MethodInfo, Object[], Object> callback)
+		public static ProxifierWithBaseClass<Object> WithoutBaseClass(IProxyAction action)
 		{
-			return new ProxifierWithBaseClass<Object>(callback);
+			return new ProxifierWithBaseClass<Object>(action);
 		}
 	}
 
 	public class ProxifierWithBaseClass<T> where T : class
 	{
 		private IList<Type> implementedInterfaces = new List<Type>();
-		private Func<Object, MethodInfo, Object[], Object> callback;
+		private IProxyAction action;
 
-		public ProxifierWithBaseClass(Func<Object, MethodInfo, Object[], Object> callback)
+		public ProxifierWithBaseClass(IProxyAction action)
 		{
-			this.callback = callback;
+			this.action = action;
 		}
 
 		public ProxifierWithBaseClass<T> WithInterfaces(params Type[] interfaces)
@@ -60,14 +60,14 @@ namespace NetDynamicProxy
 		{
 			ProxyFactory factory = new ProxyFactory();
 			factory.Init();
-			return (T) factory.Create(typeof(T), implementedInterfaces, callback);
+			return (T) factory.Create(typeof(T), implementedInterfaces, action);
 		}
 
 		public TResult Build<TResult>()
 		{
 			ProxyFactory factory = new ProxyFactory();
 			factory.Init();
-			return (TResult) factory.Create(typeof(T), implementedInterfaces, callback);
+			return (TResult) factory.Create(typeof(T), implementedInterfaces, action);
 		}
 	}
 }
