@@ -4,8 +4,14 @@
 		"debugType": "portable"
 	},
 	"dependencies": {
-		"System.Reflection.Emit": "4.0.1"
+		"System.Runtime.Serialization.Primitives": "4.1.1",
+		"xunit": "2.1.0",
+		"dotnet-test-xunit": "1.0.0-rc2-192208-24",
+		"NetMock": {
+			"target": "project"
+		}
 	},
+	"testRunner": "xunit",
 	"frameworks": {
 		"netcoreapp1.0": {
 			"dependencies": {
@@ -14,7 +20,10 @@
 					"version": "1.0.1"
 				}
 			},
-			"imports": "dnxcore50"
+			"imports": [
+				"dotnet5.4",
+				"portable-net451+win8"
+			]
 		}
 	}
 }

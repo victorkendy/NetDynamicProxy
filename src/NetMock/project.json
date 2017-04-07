@@ -4,7 +4,9 @@
 		"debugType": "portable"
 	},
 	"dependencies": {
-		"System.Reflection.Emit": "4.0.1"
+		"NetDynamicProxy": {
+			"target": "project"
+		}
 	},
 	"frameworks": {
 		"netcoreapp1.0": {
