@@ -12,6 +12,7 @@ namespace NetMock
 
 		public static OnGoingStubbing<T> When<T>(T ignored)
 		{
+			Context.LastInvokedMock.PrepareForStubbing();
 			return new OnGoingStubbing<T>(Context);
 		}
 
@@ -38,6 +39,12 @@ namespace NetMock
 		public OnGoingStubbing<T> ThenThrow(Exception exception)
 		{
 			this.MockProxy.RecordAnswer(invocation => { throw exception; });
+			return this;
+		}
+
+		public OnGoingStubbing<T> ThenThrow<E>() where E : Exception
+		{
+			this.MockProxy.RecordAnswer(invocation => { throw (Exception) Activator.CreateInstance(typeof(E)); });
 			return this;
 		}
 

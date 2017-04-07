@@ -1,42 +1,60 @@
 ﻿using System;
 using NetDynamicProxy;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace NetMock
 {
 	internal class MockProxyAction : IProxyAction
 	{
+		private static readonly Func<InvocationContext, Object> DefaultAnswer = (invocation) => {
+			var returnType = invocation.Method.ReturnType;
+			if (returnType.GetTypeInfo().IsValueType)
+			{
+				return Activator.CreateInstance(returnType);
+			}
+			return null;
+		};
+
 		private MockContext context;
-		private bool hasAnswerDefined = false;
+		private bool stubbingFinalized = true;
 		private LinkedList<Func<InvocationContext, Object>> answers = new LinkedList<Func<InvocationContext, object>>();
 
 		internal MockProxyAction(MockContext context)
 		{
 			this.context = context;
-			this.answers.AddLast(invocation => {
-				return 0;
-			});
 		}
 
 		public object OnMethodInvoked(InvocationContext invocation)
 		{
-			context.LastInvokedMock = this;
-			var answer = answers.First;
-			if(answers.Count > 1)
+			if(!stubbingFinalized)
 			{
-				answers.RemoveFirst();
+				throw new InvalidMockUsageException();
 			}
-			return answer.Value(invocation);
+			context.LastInvokedMock = this;
+			Func<InvocationContext, Object> answer = DefaultAnswer;
+			if(answers.Count > 0)
+			{
+				var firstAnswer = answers.First;
+				answer = firstAnswer.Value;
+				if(firstAnswer.Next != null)
+				{
+					answers.RemoveFirst();
+				}
+			}
+			return answer(invocation);
 		}
 
 		internal void RecordAnswer(Func<InvocationContext, Object> answer)
 		{
-			if(!hasAnswerDefined)
-			{
-				answers.RemoveFirst();
-				hasAnswerDefined = true;
-			}
 			answers.AddLast(answer);
+			stubbingFinalized = true;
+		}
+
+		internal void PrepareForStubbing()
+		{
+			stubbingFinalized = false;
+			answers.Clear();
 		}
 	}
 }
