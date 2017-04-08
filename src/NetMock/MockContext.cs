@@ -8,9 +8,9 @@ namespace NetMock
 {
 	internal class MockContext
 	{
-		private ThreadLocal<MockProxyAction> lastInvockedMocks = new ThreadLocal<MockProxyAction>();
+		private static readonly ThreadLocal<MockProxyAction> lastInvockedMocks = new ThreadLocal<MockProxyAction>();
 
-		internal MockProxyAction LastInvokedMock
+		internal static MockProxyAction LastInvokedMock
 		{
 			get
 			{

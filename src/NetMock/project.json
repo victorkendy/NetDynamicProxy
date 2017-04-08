@@ -4,6 +4,7 @@
 		"debugType": "portable"
 	},
 	"dependencies": {
+		"xunit": "2.1.0",
 		"NetDynamicProxy": {
 			"target": "project"
 		}
@@ -16,7 +17,10 @@
 					"version": "1.0.1"
 				}
 			},
-			"imports": "dnxcore50"
+			"imports": [
+				"dotnet5.4",
+				"portable-net451+win8"
+			]
 		}
 	}
 }

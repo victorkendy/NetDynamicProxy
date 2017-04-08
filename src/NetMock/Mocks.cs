@@ -8,17 +8,15 @@ namespace NetMock
 {
     public class Mocks
     {
-		private static readonly MockContext Context = new MockContext();
-
 		public static OnGoingStubbing<T> When<T>(T ignored)
 		{
-			Context.LastInvokedMock.PrepareForStubbing();
-			return new OnGoingStubbing<T>(Context);
+			MockContext.LastInvokedMock.PrepareForStubbing();
+			return new OnGoingStubbing<T>();
 		}
 
 		public static T Mock<T>() where T:class
 		{
-			return Proxifier.For<T>(new MockProxyAction(Context)).Build();
+			return Proxifier.For<T>(new MockProxyAction()).Build();
 		}
 
 		public static MockStubbing DoReturn<T>(T returnValue)
@@ -31,9 +29,9 @@ namespace NetMock
 	{
 		private readonly MockProxyAction MockProxy;
 
-		internal OnGoingStubbing(MockContext context)
+		internal OnGoingStubbing()
 		{
-			this.MockProxy = context.LastInvokedMock;
+			this.MockProxy = MockContext.LastInvokedMock;
 		}
 
 		public OnGoingStubbing<T> ThenThrow(Exception exception)

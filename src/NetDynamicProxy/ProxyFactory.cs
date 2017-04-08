@@ -8,7 +8,7 @@ namespace NetDynamicProxy
 {
 	internal class ProxyFactory
 	{
-		private static readonly String AssemblyName = "NetDynamicProxy__ProxyFactory__Internal";
+		internal static readonly String AssemblyName = "NetDynamicProxy__ProxyFactory__Internal";
 		private AssemblyBuilder assemblyBuilder;
 		private ModuleBuilder moduleBuilder;
 
@@ -54,7 +54,7 @@ namespace NetDynamicProxy
 			var methods = type.GetRuntimeMethods();
 			foreach (var method in methods)
 			{
-				if ((method.IsVirtual || method.IsAbstract) && !method.DeclaringType.Equals(typeof(object)))
+				if (method.IsVirtual || method.IsAbstract)
 				{
 					MethodAttributes methodAttributes = MethodAttributes.Public | MethodAttributes.Virtual;
 					var argumentTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();

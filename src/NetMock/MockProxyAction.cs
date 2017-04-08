@@ -7,7 +7,7 @@ namespace NetMock
 {
 	internal class MockProxyAction : IProxyAction
 	{
-		private static readonly Func<InvocationContext, Object> DefaultAnswer = (invocation) => {
+		internal static readonly Func<InvocationContext, Object> DefaultAnswer = (invocation) => {
 			var returnType = invocation.Method.ReturnType;
 			if (returnType.GetTypeInfo().IsValueType)
 			{
@@ -16,14 +16,9 @@ namespace NetMock
 			return null;
 		};
 
-		private MockContext context;
 		private bool stubbingFinalized = true;
 		private LinkedList<Func<InvocationContext, Object>> answers = new LinkedList<Func<InvocationContext, object>>();
-
-		internal MockProxyAction(MockContext context)
-		{
-			this.context = context;
-		}
+		private IList<InvocationContext> invocations = new List<InvocationContext>();
 
 		public object OnMethodInvoked(InvocationContext invocation)
 		{
@@ -31,7 +26,8 @@ namespace NetMock
 			{
 				throw new InvalidMockUsageException();
 			}
-			context.LastInvokedMock = this;
+			invocations.Add(invocation);
+			MockContext.LastInvokedMock = this;
 			Func<InvocationContext, Object> answer = DefaultAnswer;
 			if(answers.Count > 0)
 			{
@@ -55,6 +51,9 @@ namespace NetMock
 		{
 			stubbingFinalized = false;
 			answers.Clear();
+			invocations.Clear();
 		}
+
+		internal IList<InvocationContext> Invocations { get { return invocations; } }
 	}
 }

@@ -23,6 +23,21 @@ namespace NetDynamicProxy
 		{
 			return new ProxifierWithBaseClass<Object>(action);
 		}
+
+		public static IProxyAction GetProxyAction(Object proxy)
+		{
+			if (proxy == null)
+			{
+				throw new ArgumentNullException();
+			}
+			var proxyType = proxy.GetType();
+			if (!proxyType.GetTypeInfo().Assembly.FullName.StartsWith(ProxyFactory.AssemblyName))
+			{
+				throw new ArgumentException("Argument does not belong to NetDynamicProxy");
+			}
+			var field = proxyType.GetTypeInfo().GetDeclaredField("proxy__callback");
+			return (IProxyAction) field.GetValue(proxy);
+		}
 	}
 
 	public class ProxifierWithBaseClass<T> where T : class

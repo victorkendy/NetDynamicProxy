@@ -50,6 +50,15 @@ namespace NetDynamicProxy.Tests
 				.WithInterfaces(typeof(BaseInterface), null);
 			});
 		}
+
+		[Fact]
+		public void ShouldReturnProxyAction()
+		{
+			var proxyAction = new FuncProxyAction((instance, method, args) => null);
+			BaseInterface proxy = Proxifier.WithoutBaseClass(proxyAction).WithInterfaces(typeof(BaseInterface)).Build<BaseInterface>();
+
+			Assert.Same(proxyAction, Proxifier.GetProxyAction(proxy));
+		}
 	}
 
 	public class ClassAsInterface
